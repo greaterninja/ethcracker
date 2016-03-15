@@ -1,0 +1,2 @@
+# ethcracker
+Ethereum password cracker
