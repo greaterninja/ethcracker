@@ -106,7 +106,6 @@ func main() {
             err = crypto.Test_pass_v3( key_v3, s )
         } else {
             err = crypto.Test_pass_v1( key_v1, s )
-            println( "Error:", err.Error() ) 
         }
         
         if err == nil {
