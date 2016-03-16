@@ -21,6 +21,7 @@ will generate all those combinations
     a1
     a2
     a3
+    b
     a1b
     ba1
     a2b
