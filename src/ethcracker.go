@@ -20,6 +20,7 @@ var t = flag.String("t", "", "Pattern file")
 var min_len = flag.Int("min_len", 8, "Minimum password length")
 var max_len = flag.Int("max_len", 20, "Maximum password length")
 var n_threads = flag.Int("threads", 4, "Number of threads")
+var pre_sale = flag.Bool("presale", false, "The key file is the presale JSON")
 
 var params crypto.CrackerParams
 var chans []chan string
@@ -34,9 +35,10 @@ func main() {
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
     println( "Template File:", *t )
-    println( "Minimum password length", *min_len )
-    println( "Maximum password length", *max_len )
-    println( "Number of threads", *n_threads )
+    println( "Minimum password length:", *min_len )
+    println( "Maximum password length:", *max_len )
+    println( "Number of threads:", *n_threads )
+    println( "Presale file:", *pre_sale )
     
     if *n_threads < 1 || *n_threads > 32 { panic( "Wroong muber of threads ")}
     
@@ -54,9 +56,13 @@ func main() {
         } ( i )
     }
     
-    
-    err := crypto.LoadKeyFile( &params, *pk)
-    if err != nil { panic( err ) }
+    if *pre_sale {
+        err := crypto.LoadPresaleFile( &params, *pk)
+        if err != nil { panic( err ) }
+    } else {
+        err := crypto.LoadKeyFile( &params, *pk)
+        if err != nil { panic( err ) }
+    }
     
     templates = make( [][]string, 0 )
     f, err := os.Open( *t )
@@ -98,6 +104,11 @@ func main() {
             if indexes[i] > 0 { letters = append( letters, templates[i][indexes[i] - 1 ] ) }
         }
         
+        letters_str := ""
+        for _, l := range( letters ) { letters_str += "(" + l + ") "}
+        
+        println( "Selected letters:", letters_str )     
+        
         AllPermutations( letters, 0 )
     }
            
@@ -112,7 +123,18 @@ func test( l []string ) {
     if len(s) > *max_len { return }
     
     
-    chans[ params.N % *n_threads ] <- s
+    if( *n_threads == 1 ) {
+        crypto.Test_pass( &params, s, 0 )
+    } else {
+        chans[ params.N % *n_threads ] <- s
+    }
+}
+
+
+func makecopy( l []string ) []string {
+    nl := make( []string, len( l ) )
+    copy( nl, l )
+    return nl
 }
 
 func AllPermutations( l []string, index int ) {
@@ -130,6 +152,6 @@ func AllPermutations( l []string, index int ) {
         tmp := l[index]
         l[index] = l[index + j]
         l[index + j] = tmp
-        AllPermutations( l, index + 1 )
+        AllPermutations( makecopy( l ), index + 1 )
     }
 }

@@ -3,34 +3,73 @@ package crypto
 import ( 
     "encoding/json"
     "os"
+    "fmt"
     //"io/ioutil"
-    "github.com/pborman/uuid"
-	"errors"
-	"bytes"
+//    "github.com/pborman/uuid"
+//	"errors"
+//	"bytes"
 	"encoding/hex"    
     "io/ioutil"    
     "strconv"
+    "crypto/sha256"
+    "golang.org/x/crypto/pbkdf2"
 )
 
 
 type CrackerParams struct {
-    key_version int 
+    key_version string 
     key_v1 *encryptedKeyJSONV1 
     key_v3 *encryptedKeyJSONV3 
+    
+    // for presale
+	iv []byte
+	cipherText []byte
+    EthAddr string
+    
     N int
 }
 
+func LoadPresaleFile( params *CrackerParams, path string ) error {
+    
+	preSaleKeyStruct := struct {
+		EncSeed string
+		EthAddr string
+		Email   string
+		BtcAddr string
+	}{}    
+    
+    keyFileContent, err := ioutil.ReadFile( path )
+    if err != nil { return err }
+
+    params.key_version = "presale"
+    
+    
+    err = json.Unmarshal(keyFileContent, &preSaleKeyStruct)
+	if err != nil { return err}
+
+    params.EthAddr = preSaleKeyStruct.EthAddr
+
+    
+    encSeedBytes, err := hex.DecodeString(preSaleKeyStruct.EncSeed)
+	params.iv = encSeedBytes[:16]
+	params.cipherText = encSeedBytes[16:]
+	
+    println( "Key file version:", params.key_version)    
+    return nil
+}
+    
 func LoadKeyFile( params *CrackerParams, path string ) error {
+    
     keyFileContent, err := ioutil.ReadFile( path )
     if err != nil { return err }
 
 //    println( "Private key file content:", string( keyFileContent ) )
 
-    params.key_version = 3
+    params.key_version = "v3"
     params.key_v3, err = LoadKeyVersion3( keyFileContent )
 
     if err != nil { 
-        params.key_version = 1
+        params.key_version = "v1"
         params.key_v1, err = LoadKeyVersion1( keyFileContent )
         if err != nil { return err }
         //println( "Private key JSON (version 1):", string( pk_log ) )
@@ -58,10 +97,10 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
 
     var err error 
     
-    if params.key_version == 3 {
-        err = Test_pass_v3( params.key_v3, s )
-    } else {
-        err = Test_pass_v1( params.key_v1, s )
+    switch params.key_version {
+        case "v3":  err = Test_pass_v3( params.key_v3, s )
+        case "v1" : err = Test_pass_v1( params.key_v1, s )
+        case "presale" : err = Test_pass_presale( params, s )
     }
     
     params.N++
@@ -90,7 +129,7 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
     
 
 func Test_pass_v1( k *encryptedKeyJSONV1, auth string ) error {
-    _, _, err := MydecryptKeyV1(k, auth)
+    _, _, err := decryptKeyV1(k, auth)
     return err
 }
 
@@ -99,37 +138,33 @@ func Test_pass_v3( k *encryptedKeyJSONV3, auth string ) error {
     return err
 }
 
-func MydecryptKeyV1(keyProtected *encryptedKeyJSONV1, auth string) (keyBytes []byte, keyId []byte, err error) {
-	keyId = uuid.Parse(keyProtected.Id)
-	mac, err := hex.DecodeString(keyProtected.Crypto.MAC)
+func Test_pass_presale( params *CrackerParams, password string ) error {
+	passBytes := []byte(password)
+	derivedKey := pbkdf2.Key(passBytes, passBytes, 2000, 16, sha256.New)
+//	_, err := aesCBCDecrypt(derivedKey, params.cipherText, params.iv)
+
+    plainText, err := aesCBCDecrypt(derivedKey, params.cipherText, params.iv)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
+	ethPriv := Sha3(plainText)
+	ecKey := ToECDSA(ethPriv)
+//	key = &Key {
+//		Id:         nil,
+//		Address:    PubkeyToAddress( ecKey.PublicKey),
+//		PrivateKey: ecKey,
+//	}
+	
+    Address := PubkeyToAddress( ecKey.PublicKey)
     
-	iv, err := hex.DecodeString(keyProtected.Crypto.CipherParams.IV)
-	if err != nil {
-		return nil, nil, err
+    
+//	derivedAddr := hex.EncodeToString(key.Address.Bytes()) // needed because .Hex() gives leading "0x"
+	derivedAddr := hex.EncodeToString( Address.Bytes() ) // needed because .Hex() gives leading "0x"
+	expectedAddr := params.EthAddr
+	if derivedAddr != expectedAddr {
+		err = fmt.Errorf("decrypted addr '%s' not equal to expected addr '%s'", derivedAddr, expectedAddr)
 	}
 
-	cipherText, err := hex.DecodeString(keyProtected.Crypto.CipherText)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	derivedKey, err := getKDFKey(keyProtected.Crypto, auth)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	calculatedMAC := Sha3(derivedKey[16:32], cipherText)
-	if !bytes.Equal(calculatedMAC, mac) {
-		return nil, nil, errors.New("Decryption failed: MAC mismatch")
-	}
-
-	plainText, err := aesCBCDecrypt(Sha3(derivedKey[:16])[:16], cipherText, iv)
-	if err != nil {
-		return nil, nil, err
-	}
-	return plainText, keyId, err
+    return err
 }
 
