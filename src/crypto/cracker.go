@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding/hex"    
     "io/ioutil"    
+    "strconv"
 )
 
 
@@ -16,7 +17,7 @@ type CrackerParams struct {
     key_version int 
     key_v1 *encryptedKeyJSONV1 
     key_v3 *encryptedKeyJSONV3 
-    n int
+    N int
 }
 
 func LoadKeyFile( params *CrackerParams, path string ) error {
@@ -53,7 +54,7 @@ func LoadKeyVersion3( fileContent []byte ) ( *encryptedKeyJSONV3, error ) {
     return key, err
 }
 
-func Test_pass( params *CrackerParams, s string ) error {
+func Test_pass( params *CrackerParams, s string, thread int ) error {
 
     var err error 
     
@@ -63,9 +64,8 @@ func Test_pass( params *CrackerParams, s string ) error {
         err = Test_pass_v1( params.key_v1, s )
     }
     
-    params.n++
-    
-    println( params.n, ": ", s )
+    params.N++
+    println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + ": ", s )
         
     if err == nil {
         println( "" )            

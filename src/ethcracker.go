@@ -19,8 +19,11 @@ var pk = flag.String("pk", "", "Private key file")
 var t = flag.String("t", "", "Pattern file")
 var min_len = flag.Int("min_len", 8, "Minimum password length")
 var max_len = flag.Int("max_len", 20, "Maximum password length")
+var n_threads = flag.Int("threads", 4, "Number of threads")
 
 var params crypto.CrackerParams
+var chans []chan string
+
 
 func main() {
     flag.Parse()
@@ -33,6 +36,23 @@ func main() {
     println( "Template File:", *t )
     println( "Minimum password length", *min_len )
     println( "Maximum password length", *max_len )
+    println( "Number of threads", *n_threads )
+    
+    if *n_threads < 1 || *n_threads > 32 { panic( "Wroong muber of threads ")}
+    
+    chans = make( []chan string, *n_threads )
+    for i := 0; i < *n_threads; i++ { 
+        chans[i] = make( chan string ) 
+        
+        go func( index int ) {
+            
+            for {
+                s := <- chans[ index ]
+                crypto.Test_pass( &params, s, index )
+            }
+            
+        } ( i )
+    }
     
     
     err := crypto.LoadKeyFile( &params, *pk)
@@ -91,7 +111,8 @@ func test( l []string ) {
     if len(s) < *min_len { return }
     if len(s) > *max_len { return }
     
-    crypto.Test_pass( &params, s )
+    
+    chans[ params.N % *n_threads ] <- s
 }
 
 func AllPermutations( l []string, index int ) {
