@@ -40,8 +40,20 @@ will generate all those combinations
 
 Install Go Language
 
+
     git clone https://github.com/lexansoft/ethcracker
     cd ethcracker
+    
+    go get github.com/ethereum/go-ethereum/common
+    go get github.com/ethereum/go-ethereum/crypto/ecies
+    go get github.com/ethereum/go-ethereum/crypto/randentropy
+    go get github.com/ethereum/go-ethereum/crypto/secp256k1
+    go get github.com/ethereum/go-ethereum/crypto/sha3
+    go get github.com/ethereum/go-ethereum/rlp
+    go get github.com/pborman/uuid
+    go get golang.org/x/crypto/pbkdf2
+    go get golang.org/x/crypto/ripemd160
+    go get golang.org/x/crypto/scrypt
     
     go run src/ethcracker.go -pk PATH_TO_FILE -t PATH_TO_TAMPLATE_FILE -threads 4 
     

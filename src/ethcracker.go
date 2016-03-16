@@ -30,7 +30,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker")
+    println( "Ethereum Password Cracker v1.1")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
