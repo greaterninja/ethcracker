@@ -5,7 +5,7 @@ the list of possible substrings from wich you constracted the passwerd, then try
 routinly go through all the possible combinations and find the working password.
 
 PLEASE DO NOT TRUST ANYONE TO COMPILE THE PROGRAM FOR YOU. ALWAYS USE THE SOURCE CODE DOWNLOADED FROM 
-THE GITHUB. THIS WAY YOU CAN BE SURE, THE CODE DOES NOT HAVE ANY MALICIOUS CODE !!!
+THE GITHUB. THIS WAY YOU CAN BE SURE, THE PROGRAM DOES NOT HAVE ANY MALICIOUS CODE !!!
 
 # Usage 
 
