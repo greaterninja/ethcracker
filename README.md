@@ -16,7 +16,7 @@ Every line contains the possible variants of the substring. For example file:
     a1 a2 a3
     b
 
-Will try all those combinations
+will generate all those combinations
 
     a1
     a2
