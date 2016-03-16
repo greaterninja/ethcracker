@@ -4,29 +4,29 @@ Ethereum password cracker
 
 # Usage 
 
-ethcracker -pk ~/test/pk.txt -t ~/test/templates.txt
+    ethcracker -pk ~/test/pk.txt -t ~/test/templates.txt
 
--pk path to the private key file
--t  path to the template file
+    -pk path to the private key file
+    -t  path to the template file
 
 # Template file format
 
 Every line contains the possible variants of the substring. For example file:
 
-a1 a2 a3
-b
+    a1 a2 a3
+    b
 
 Will try all those combinations
 
-a1
-a2
-a3
-a1b
-ba1
-a2b
-ba2
-a3b
-ba3
+    a1
+    a2
+    a3
+    a1b
+    ba1
+    a2b
+    ba2
+    a3b
+    ba3
 
 # Donation
 
