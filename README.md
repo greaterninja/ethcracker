@@ -8,6 +8,7 @@ Ethereum password cracker
 
     -pk path to the private key file
     -t  path to the template file
+    -presale  for cracking prelase JSSON file
 
 # Template file format
 
