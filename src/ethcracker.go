@@ -4,7 +4,7 @@ import (
     "flag"
     "os"
     "bufio"
-//    "fmt"
+    "sync"
     "strings"
 //    "encoding/json"
 
@@ -24,6 +24,7 @@ var pre_sale = flag.Bool("presale", false, "The key file is the presale JSON")
 
 var params crypto.CrackerParams
 var chans []chan string
+var wg sync.WaitGroup
 
 
 func main() {
@@ -40,20 +41,26 @@ func main() {
     println( "Number of threads:", *n_threads )
     println( "Presale file:", *pre_sale )
     
-    if *n_threads < 1 || *n_threads > 32 { panic( "Wroong muber of threads ")}
+    if *n_threads < 1 || *n_threads > 32 { panic( "Wrong muber of threads ")}
     
-    chans = make( []chan string, *n_threads )
-    for i := 0; i < *n_threads; i++ { 
-        chans[i] = make( chan string ) 
-        
-        go func( index int ) {
-            
-            for {
-                s := <- chans[ index ]
-                crypto.Test_pass( &params, s, index )
-            }
-            
-        } ( i )
+    if *n_threads > 1 {
+        wg.Add( *n_threads )
+        chans = make( []chan string, *n_threads )
+        for i := 0; i < *n_threads; i++ { 
+            chans[i] = make( chan string ) 
+
+            go func( index int ) {
+
+                for {
+                    s := <- chans[ index ]
+                    
+                    if s == "" { wg.Done(); break; }
+                    
+                    crypto.Test_pass( &params, s, index )
+                }
+
+            } ( i )
+        }
     }
     
     if *pre_sale {
@@ -111,6 +118,15 @@ func main() {
         
         AllPermutations( letters, 0 )
     }
+    
+    //wait for threads to finish
+    if *n_threads > 1  {
+        for i := 0; i < *n_threads; i++ { 
+            chans[i] <- ""
+        }
+        wg.Wait()        
+    }
+
            
     println( ":-( Sorry... password not found")           
 } 
