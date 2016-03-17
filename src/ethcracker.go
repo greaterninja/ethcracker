@@ -41,7 +41,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.3")
+    println( "Ethereum Password Cracker v1.4")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
@@ -129,18 +129,31 @@ func main() {
     } else {
         n := len( templates )
 
+        bt := 0
+        
         for k := 1; k <= n; k++ {
-            params.Total += fact( n ) / fact( n - k )
+            bt += fact( n ) / fact( n - k )
         }
+        
+////         println( "Debug:", params.Total )
+//        n1 := 0;
+//        for k := 1; k <= n - 1; k++ {
+//            n1 += fact( n - 1 ) / fact( n - 1 - k )
+//        }
+////         println( "Debug:", n1 )
+//
+//        params.Total = bt
+//        
+//        n1 = params.Total - n1 
+//        for ii, l := range( templates ) { 
+//            params.Total += params.Total * n1 * ( len( l ) - 1 ) / bt
+//            println( "Debug:", ii, len( l ), params.Total )
+//        }
 
-        n1 := 0;
-        for k := 1; k <= n - 1; k++ {
-            n1 += fact( n - 1 ) / fact( n - 1 - k )
-        }
-
-        n1 = params.Total - n1 
+        params.Total = bt
+        
         for _, l := range( templates ) { 
-            params.Total += params.Total * n1 * ( len( l ) - 1 ) / params.Total
+            params.Total *= len( l )
         }
     }
     
