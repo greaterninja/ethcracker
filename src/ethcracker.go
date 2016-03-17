@@ -21,6 +21,7 @@ var min_len = flag.Int("min_len", 8, "Minimum password length")
 var max_len = flag.Int("max_len", 20, "Maximum password length")
 var n_threads = flag.Int("threads", 4, "Number of threads")
 var pre_sale = flag.Bool("presale", false, "The key file is the presale JSON")
+var keep_order = flag.Bool("keep_order", false, "Keep order of the lines (no permutations)")
 var v = flag.Int("v", 0, "Verbosity ( 0, 1, 2 )")
 var start_from = flag.Int("start_from", 0, "Skip first N combinations")
 
@@ -39,7 +40,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.1")
+    println( "Ethereum Password Cracker v1.2")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
@@ -49,6 +50,7 @@ func main() {
     println( "Maximum password length:", *max_len )
     println( "Number of threads:", *n_threads )
     println( "Presale file:", *pre_sale )
+    println( "Keep order:", *keep_order )
     
     params.V = *v
     params.Start_from = *start_from
@@ -93,7 +95,14 @@ func main() {
     scanner := bufio.NewScanner(f)
     for scanner.Scan() {
         tl := strings.Split( scanner.Text(), " " )
-        if len( tl ) >= 0 { templates = append( templates, tl ) }
+        if len( tl ) >= 0 { 
+            
+            for i, _ := range( tl ) {
+                tl[i] = strings.Replace( tl[i], "\\s", " ", -1 )
+            }
+            
+            templates = append( templates, tl ) 
+        }
     }
 
     if err := scanner.Err(); err != nil { panic( err ) }
@@ -108,21 +117,31 @@ func main() {
     //calculate number of variants:
     params.Total = 0
     
-    n := len( templates )
-    
-    for k := 1; k <= n; k++ {
-        params.Total += fact( n ) / fact( n - k )
+    if *keep_order {
+        params.Total = 1;
+        for _, l := range( templates ) { 
+            params.Total *= len( l ) + 1
+        }
+        params.Total = params.Total - 1
+        
+    } else {
+        n := len( templates )
+
+        for k := 1; k <= n; k++ {
+            params.Total += fact( n ) / fact( n - k )
+        }
+
+        n1 := 0;
+        for k := 1; k <= n - 1; k++ {
+            n1 += fact( n - 1 ) / fact( n - 1 - k )
+        }
+
+        n1 = params.Total - n1 
+        for _, l := range( templates ) { 
+            params.Total += params.Total * n1 * ( len( l ) - 1 ) / params.Total
+        }
     }
     
-    n1 := 0;
-    for k := 1; k <= n - 1; k++ {
-        n1 += fact( n - 1 ) / fact( n - 1 - k )
-    }
-    
-    n1 = params.Total - n1 
-    for _, l := range( templates ) { 
-        params.Total += params.Total * n1 * ( len( l ) - 1 ) / params.Total
-    }
     println( "Total possible variants:", params.Total)
     
     
@@ -154,7 +173,11 @@ func main() {
         
         if *v > 0 && params.N >= params.Start_from { println( "Selected letters:", letters_str ) }
         
-        AllPermutations( letters, 0 )
+        if *keep_order {
+            test( letters )
+        } else {
+            AllPermutations( letters, 0 )
+        }
     }
     
     //wait for threads to finish

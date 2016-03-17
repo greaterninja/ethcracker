@@ -104,6 +104,9 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
     
     mutex.Lock()
     params.N++
+    if params.V > 0 && params.N >= params.Start_from {
+        println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + ": ", s )
+    }
     mutex.Unlock()
     if params.N < params.Start_from { return errors.New( "skipped") }
     
@@ -114,12 +117,6 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
         case "presale" : err = Test_pass_presale( params, s )
     }
     
-    if params.V > 0 {
-        mutex.Lock()
-        println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + ": ", s )
-        mutex.Unlock()
-    }
-        
     if err == nil {
         println( "" )            
         println( "" )            

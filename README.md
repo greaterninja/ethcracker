@@ -17,6 +17,8 @@ THE GITHUB. THIS WAY YOU CAN BE SURE, THE PROGRAM DOES NOT HAVE ANY MALICIOUS CO
     -threads Number of threads
     -v Verbosity ( 0, 1, 2 )
     -start_from Skip first N combinations
+    -keep_order Keep the order of the lines ( no permutations )
+    
 
 # Template file format
 
@@ -37,6 +39,8 @@ will generate all those combinations
     ba2
     a3b
     ba3
+
+Note: you can use \s to specify white space. ( "a\sb" means "a b" )
 
 # Installing
 
