@@ -4,13 +4,14 @@ import (
     "encoding/json"
     "os"
     "fmt"
+    "time"
     //"io/ioutil"
 //    "github.com/pborman/uuid"
 	"errors"
 	"sync"
 	"encoding/hex"    
     "io/ioutil"    
-    "strconv"
+//    "strconv"
     "crypto/sha256"
     "golang.org/x/crypto/pbkdf2"
 )
@@ -31,6 +32,8 @@ type CrackerParams struct {
     
     N int
     Total int
+    
+    StartTime time.Time
 }
 
 var mutex = &sync.Mutex{}
@@ -104,8 +107,20 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
     
     mutex.Lock()
     params.N++
-    if params.V > 0 && params.N >= params.Start_from {
-        println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + ": ", s )
+    if params.V > 0 && params.N >= params.Start_from && params.N - params.Start_from > 0 {
+//        println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + "/" + params.Total + 
+//                " " + strconv.Itoa( thread ) : ", s )
+        
+        ns_left := time.Since( params.StartTime ).Nanoseconds() * 
+            int64( params.Total - params.N ) / int64 ( params.N - params.Start_from ) 
+        
+        fmt.Printf( "TH%d-> #%d/%d %d%% Left: %v %v\n", 
+                   thread, 
+                   params.N, 
+                   params.Total, 
+                   params.N * 100 / params.Total, 
+                   time.Duration( ns_left ),
+                   s );
     }
     mutex.Unlock()
     if params.N < params.Start_from { return errors.New( "skipped") }

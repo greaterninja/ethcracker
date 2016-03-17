@@ -8,6 +8,7 @@ import (
     "strings"
 //    "encoding/json"
 
+    "time"
     "./crypto"
 )
 
@@ -40,7 +41,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.2")
+    println( "Ethereum Password Cracker v1.3")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
@@ -54,6 +55,7 @@ func main() {
     
     params.V = *v
     params.Start_from = *start_from
+    params.StartTime = time.Now()
     
     if *pk == "" { panic( "No key file") }
     if *t == "" { panic( "No template file") }
@@ -171,7 +173,7 @@ func main() {
         letters_str := ""
         for _, l := range( letters ) { letters_str += "(" + l + ") "}
         
-        if *v > 0 && params.N >= params.Start_from { println( "Selected letters:", letters_str ) }
+        if *v > 1 && params.N >= params.Start_from { println( "Selected letters:", letters_str ) }
         
         if *keep_order {
             test( letters )
