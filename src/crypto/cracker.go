@@ -6,8 +6,8 @@ import (
     "fmt"
     //"io/ioutil"
 //    "github.com/pborman/uuid"
-//	"errors"
-//	"bytes"
+	"errors"
+	"sync"
 	"encoding/hex"    
     "io/ioutil"    
     "strconv"
@@ -26,8 +26,14 @@ type CrackerParams struct {
 	cipherText []byte
     EthAddr string
     
+    V int // Verbosity
+    Start_from int
+    
     N int
+    Total int
 }
+
+var mutex = &sync.Mutex{}
 
 func LoadPresaleFile( params *CrackerParams, path string ) error {
     
@@ -94,8 +100,13 @@ func LoadKeyVersion3( fileContent []byte ) ( *encryptedKeyJSONV3, error ) {
 }
 
 func Test_pass( params *CrackerParams, s string, thread int ) error {
-
     var err error 
+    
+    mutex.Lock()
+    params.N++
+    mutex.Unlock()
+    if params.N < params.Start_from { return errors.New( "skipped") }
+    
     
     switch params.key_version {
         case "v3":  err = Test_pass_v3( params.key_v3, s )
@@ -103,8 +114,11 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
         case "presale" : err = Test_pass_presale( params, s )
     }
     
-    params.N++
-    println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + ": ", s )
+    if params.V > 0 {
+        mutex.Lock()
+        println( "TH" + strconv.Itoa( thread ) + "-> #" +  strconv.Itoa( params.N ) + ": ", s )
+        mutex.Unlock()
+    }
         
     if err == nil {
         println( "" )            

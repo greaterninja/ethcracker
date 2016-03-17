@@ -21,11 +21,19 @@ var min_len = flag.Int("min_len", 8, "Minimum password length")
 var max_len = flag.Int("max_len", 20, "Maximum password length")
 var n_threads = flag.Int("threads", 4, "Number of threads")
 var pre_sale = flag.Bool("presale", false, "The key file is the presale JSON")
+var v = flag.Int("v", 0, "Verbosity ( 0, 1, 2 )")
+var start_from = flag.Int("start_from", 0, "Skip first N combinations")
 
 var params crypto.CrackerParams
 var chans []chan string
 var wg sync.WaitGroup
 
+func fact( x int) int {
+  if x == 0 {
+    return 1
+  }
+  return x * fact( x - 1 )
+}
 
 func main() {
     flag.Parse()
@@ -36,10 +44,17 @@ func main() {
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
     println( "Template File:", *t )
+    println( "Verbosity:", *v )
     println( "Minimum password length:", *min_len )
     println( "Maximum password length:", *max_len )
     println( "Number of threads:", *n_threads )
     println( "Presale file:", *pre_sale )
+    
+    params.V = *v
+    params.Start_from = *start_from
+    
+    if *pk == "" { panic( "No key file") }
+    if *t == "" { panic( "No template file") }
     
     if *n_threads < 1 || *n_threads > 32 { panic( "Wrong muber of threads ")}
     
@@ -87,10 +102,35 @@ func main() {
     
     println( "Template lines:", len( templates ) )
     
+    
+    if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
+    
+    //calculate number of variants:
+    params.Total = 0
+    
+    n := len( templates )
+    
+    for k := 1; k <= n; k++ {
+        params.Total += fact( n ) / fact( n - k )
+    }
+    
+    n1 := 0;
+    for k := 1; k <= n - 1; k++ {
+        n1 += fact( n - 1 ) / fact( n - 1 - k )
+    }
+    
+    n1 = params.Total - n1 
+    for _, l := range( templates ) { 
+        params.Total += params.Total * n1 * ( len( l ) - 1 ) / params.Total
+    }
+    println( "Total possible variants:", params.Total)
+    
+    
+    
+    println( "---------------- STARTING ----------------------")
+
     //main cycle
     indexes := make( []int, len( templates ) )
-
-    v := 0
     main: for {
         for i := 0; i < len( indexes ); i++ {
             
@@ -103,8 +143,6 @@ func main() {
             }
         } 
         
-        v++
-        
         letters := make( []string, 0 )
         
         for i := 0; i < len( indexes ); i++ {
@@ -114,7 +152,7 @@ func main() {
         letters_str := ""
         for _, l := range( letters ) { letters_str += "(" + l + ") "}
         
-        println( "Selected letters:", letters_str )     
+        if *v > 0 && params.N >= params.Start_from { println( "Selected letters:", letters_str ) }
         
         AllPermutations( letters, 0 )
     }
