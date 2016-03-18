@@ -1,7 +1,7 @@
 # Ethereum password cracker
 
 If you forgot your password for Ethereum private key or presale file, but think you still remember 
-the list of possible substrings from wich you constracted the passwerd, then try this progam to 
+the list of possible substrings from wich you constracted the password, then try this progam to 
 routinly go through all the possible combinations and find the working password.
 
 PLEASE DO NOT TRUST ANYONE TO COMPILE THE PROGRAM FOR YOU. ALWAYS USE THE SOURCE CODE DOWNLOADED FROM 
