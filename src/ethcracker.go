@@ -23,7 +23,7 @@ var max_len = flag.Int("max_len", 20, "Maximum password length")
 var n_threads = flag.Int("threads", 4, "Number of threads")
 var pre_sale = flag.Bool("presale", false, "The key file is the presale JSON")
 var keep_order = flag.Bool("keep_order", false, "Keep order of the lines (no permutations)")
-var v = flag.Int("v", 0, "Verbosity ( 0, 1, 2 )")
+var v = flag.Int("v", 1, "Verbosity ( 0, 1, 2 )")
 var re = flag.Int("re", 1, "Report every N-th combination")
 var start_from = flag.Int("start_from", 0, "Skip first N combinations")
 
@@ -42,7 +42,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.5")
+    println( "Ethereum Password Cracker v1.6")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
