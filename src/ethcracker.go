@@ -24,6 +24,7 @@ var n_threads = flag.Int("threads", 4, "Number of threads")
 var pre_sale = flag.Bool("presale", false, "The key file is the presale JSON")
 var keep_order = flag.Bool("keep_order", false, "Keep order of the lines (no permutations)")
 var v = flag.Int("v", 0, "Verbosity ( 0, 1, 2 )")
+var re = flag.Int("re", 1, "Report every N-th combination")
 var start_from = flag.Int("start_from", 0, "Skip first N combinations")
 
 var params crypto.CrackerParams
@@ -41,7 +42,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.4")
+    println( "Ethereum Password Cracker v1.5")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
@@ -53,9 +54,15 @@ func main() {
     println( "Presale file:", *pre_sale )
     println( "Keep order:", *keep_order )
     
+    
+    if *re <=0 { panic( "wrong -re")}
+    
+    println( "Report every :", *re, "combination")
+    
     params.V = *v
     params.Start_from = *start_from
     params.StartTime = time.Now()
+    params.RE = *re
     
     if *pk == "" { panic( "No key file") }
     if *t == "" { panic( "No template file") }
@@ -117,54 +124,46 @@ func main() {
     if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
     
     //calculate number of variants:
-    params.Total = 0
+    counters := make( []int, len( templates ) + 1 )
+    indexes := make( []int, len( templates ) )
     
-    if *keep_order {
-        params.Total = 1;
-        for _, l := range( templates ) { 
-            params.Total *= len( l ) + 1
-        }
-        params.Total = params.Total - 1
-        
-    } else {
-        n := len( templates )
+    counter: for {
+        for i := 0; i < len( indexes ); i++ {
 
-        bt := 0
+            if indexes[i] < len( templates[i] ) {
+                indexes[i] = indexes[i] + 1
+                break;
+            } else {
+                indexes[i] = 0
+                if i == len( templates ) - 1 { break counter }
+            }
+        } 
         
-        for k := 1; k <= n; k++ {
-            bt += fact( n ) / fact( n - k )
-        }
+        //println( "indexes:", indexes)           
+ 
         
-////         println( "Debug:", params.Total )
-//        n1 := 0;
-//        for k := 1; k <= n - 1; k++ {
-//            n1 += fact( n - 1 ) / fact( n - 1 - k )
-//        }
-////         println( "Debug:", n1 )
-//
-//        params.Total = bt
-//        
-//        n1 = params.Total - n1 
-//        for ii, l := range( templates ) { 
-//            params.Total += params.Total * n1 * ( len( l ) - 1 ) / bt
-//            println( "Debug:", ii, len( l ), params.Total )
-//        }
-
-        params.Total = bt
+        not_zero := 0
+        for _,k := range( indexes ) { if k != 0 { not_zero++ }}
         
-        for _, l := range( templates ) { 
-            params.Total *= len( l )
-        }
+        counters[not_zero]++
     }
     
-    println( "Total possible variants:", params.Total)
+    for i, c := range( counters ) {
+        //println( "counters ", i, c )
+        params.Total += c * fact( i )
+
+        if params.Total > 100000000 { panic( "Too many templates. No way you have so much powerful computer...")}
+        
+    }
+
     
+    println( "Total possible variants:", params.Total)
     
     
     println( "---------------- STARTING ----------------------")
 
     //main cycle
-    indexes := make( []int, len( templates ) )
+    indexes = make( []int, len( templates ) )
     main: for {
         for i := 0; i < len( indexes ); i++ {
             

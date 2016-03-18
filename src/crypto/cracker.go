@@ -32,6 +32,7 @@ type CrackerParams struct {
     
     N int
     Total int
+    RE int
     
     StartTime time.Time
 }
@@ -113,14 +114,16 @@ func Test_pass( params *CrackerParams, s string, thread int ) error {
         
         ns_left := time.Since( params.StartTime ).Nanoseconds() * 
             int64( params.Total - params.N ) / int64 ( params.N - params.Start_from ) 
-        
-        fmt.Printf( "TH%d-> #%d/%d %d%% Left: %v %v\n", 
-                   thread, 
-                   params.N, 
-                   params.Total, 
-                   params.N * 100 / params.Total, 
-                   time.Duration( ns_left ),
-                   s );
+      
+        if params.N % params.RE == 0 {
+            fmt.Printf( "TH%d-> #%d/%d %d%% Left: %v %v\n", 
+                       thread, 
+                       params.N, 
+                       params.Total, 
+                       params.N * 100 / params.Total, 
+                       time.Duration( ns_left ),
+                       s );
+        }
     }
     mutex.Unlock()
     if params.N < params.Start_from { return errors.New( "skipped") }
