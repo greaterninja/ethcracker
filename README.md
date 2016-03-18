@@ -18,7 +18,7 @@ THE GITHUB. THIS WAY YOU CAN BE SURE, THE PROGRAM DOES NOT HAVE ANY MALICIOUS CO
     -v Verbosity ( 0, 1, 2 )
     -start_from Skip first N combinations
     -keep_order Keep the order of the lines ( no permutations )
-    -re Report every N combination
+    -re Report every N-th combination
     
 
 # Template file format
