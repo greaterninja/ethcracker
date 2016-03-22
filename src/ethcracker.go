@@ -7,7 +7,7 @@ import (
     "sync"
     "strings"
 //    "encoding/json"
-
+//    "fmt"
     "time"
     "./crypto"
 )
@@ -26,10 +26,12 @@ var keep_order = flag.Bool("keep_order", false, "Keep order of the lines (no per
 var v = flag.Int("v", 1, "Verbosity ( 0, 1, 2 )")
 var re = flag.Int("re", 1, "Report every N-th combination")
 var start_from = flag.Int("start_from", 0, "Skip first N combinations")
+var dump = flag.String("dump", "", "Just output all the possible variants")
 
 var params crypto.CrackerParams
 var chans []chan string
 var wg sync.WaitGroup
+var f_dump *os.File 
 
 func fact( x int) int {
   if x == 0 {
@@ -39,25 +41,39 @@ func fact( x int) int {
 }
 
 func main() {
+    var err error
+    
     flag.Parse()
     
-    println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.7")
-    println( "Author: @AlexNa ")
-    println( "------------------------------------------------")
-    println( "Private Key File:", *pk )
-    println( "Template File:", *t )
-    println( "Verbosity:", *v )
-    println( "Minimum password length:", *min_len )
-    println( "Maximum password length:", *max_len )
-    println( "Number of threads:", *n_threads )
-    println( "Presale file:", *pre_sale )
-    println( "Keep order:", *keep_order )
+    if *dump != "" { 
+        *v = 0
+        *n_threads = 1
+        
+        f_dump, err = os.Create( *dump )
+        if err != nil { panic( err ) }
+        
+        defer f_dump.Close() 
+    }
     
+    
+    if *v > 0 {
+        println( "------------------------------------------------")
+        println( "Ethereum Password Cracker v1.8")
+        println( "Author: @AlexNa ")
+        println( "------------------------------------------------")
+        println( "Private Key File:", *pk )
+        println( "Template File:", *t )
+        println( "Verbosity:", *v )
+        println( "Minimum password length:", *min_len )
+        println( "Maximum password length:", *max_len )
+        println( "Number of threads:", *n_threads )
+        println( "Presale file:", *pre_sale )
+        println( "Keep order:", *keep_order )
+    }
     
     if *re <=0 { panic( "wrong -re")}
     
-    println( "Report every :", *re, "combination")
+    if *v > 0 { println( "Report every :", *re, "combination") }
     
     params.V = *v
     params.Start_from = *start_from
@@ -93,7 +109,7 @@ func main() {
         err := crypto.LoadPresaleFile( &params, *pk)
         if err != nil { panic( err ) }
     } else {
-        err := crypto.LoadKeyFile( &params, *pk)
+        err := crypto.LoadKeyFile( &params, *pk, *v)
         if err != nil { panic( err ) }
     }
     
@@ -118,7 +134,7 @@ func main() {
 
     f.Close()
     
-    println( "Template lines:", len( templates ) )
+    if *v > 0 { println( "Template lines:", len( templates ) ) }
     
     
     //calculate number of variants:
@@ -164,14 +180,13 @@ func main() {
     }
 
     
-    println( "Total possible variants:", params.Total)
-    
-    
-    println( "---------------- STARTING ----------------------")
+    if *v > 0 { println( "Total possible variants:", params.Total) }
+    if *v > 0 { println( "---------------- STARTING ----------------------") }
 
     //main cycle
     indexes = make( []int, len( templates ) )
     main: for {
+        
         for i := 0; i < len( indexes ); i++ {
             
             if indexes[i] < len( templates[i] ) {
@@ -210,7 +225,7 @@ func main() {
     }
 
            
-    println( ":-( Sorry... password not found")           
+    if *v > 0 { println( ":-( Sorry... password not found") }
 } 
 
 func test( l []string ) {
@@ -220,6 +235,10 @@ func test( l []string ) {
     if len(s) < *min_len { return }
     if len(s) > *max_len { return }
     
+    if *dump != "" {
+        f_dump.Write( []byte( s + "\n" ) )
+        return
+    }    
     
     if( *n_threads == 1 ) {
         crypto.Test_pass( &params, s, 0 )

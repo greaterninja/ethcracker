@@ -68,7 +68,7 @@ func LoadPresaleFile( params *CrackerParams, path string ) error {
     return nil
 }
     
-func LoadKeyFile( params *CrackerParams, path string ) error {
+func LoadKeyFile( params *CrackerParams, path string, log_level int ) error {
     
     keyFileContent, err := ioutil.ReadFile( path )
     if err != nil { return err }
@@ -87,7 +87,7 @@ func LoadKeyFile( params *CrackerParams, path string ) error {
         //println( "Private key JSON (version 3):", string( pk_log ) )
     }
 
-    println( "Key file version:", params.key_version)    
+    if log_level > 0 { println( "Key file version:", params.key_version) }
     return nil
 }
 

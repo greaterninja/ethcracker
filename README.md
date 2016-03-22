@@ -19,6 +19,7 @@ THE GITHUB. THIS WAY YOU CAN BE SURE, THE PROGRAM DOES NOT HAVE ANY MALICIOUS CO
     -start_from Skip first N combinations
     -keep_order Keep the order of the lines ( no permutations )
     -re Report every N-th combination
+    -dump path Just dump all the variants into text file
     
 
 # Template file format
