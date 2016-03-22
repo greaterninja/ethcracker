@@ -79,7 +79,7 @@ You you stored your keys in the encrypted mac DMG image and forgot the password,
 
 # Donation
 
-If this program helps you to restore the password, please donate some ETH to the address:
+If this program helped you to restore the password, please donate some ETH to the address:
 
  0x281694Fabfdd9735e01bB59942B18c469b6e3df6
  
