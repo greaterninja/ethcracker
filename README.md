@@ -65,7 +65,17 @@ Install Go Language
     
     go run src/ethcracker.go -pk PATH_TO_FILE -t PATH_TO_TAMPLATE_FILE -threads 4 
     
+# Cracking your Mac DMG file password
+You you stored your keys in the encrypted mac DMG image and forgot the password, do this:
 
+1. dump all the possible variants of your password into a file
+
+        go run src/ethcracker.go ... -dump ~/v.txt 
+        
+2. Use dmg_pass.bash script to try all the variants form v.txt
+
+        ./dmg_pass.bash v.txt your.dmg
+        
 
 # Donation
 
