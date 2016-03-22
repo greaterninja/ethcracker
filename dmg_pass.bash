@@ -14,8 +14,10 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     if [ $? -eq 0 ]; then
     
         echo "================================================================"
-        echo "             The disk is succesfully mouned!!! "
+        echo ""
+        echo "            The disk is succesfully mounted!!! "
         echo "            Your password is: $line"
+        echo ""
         echo "================================================================"
         exit    
     fi
