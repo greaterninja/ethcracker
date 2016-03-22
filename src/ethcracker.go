@@ -42,7 +42,7 @@ func main() {
     flag.Parse()
     
     println( "------------------------------------------------")
-    println( "Ethereum Password Cracker v1.6")
+    println( "Ethereum Password Cracker v1.7")
     println( "Author: @AlexNa ")
     println( "------------------------------------------------")
     println( "Private Key File:", *pk )
@@ -121,39 +121,46 @@ func main() {
     println( "Template lines:", len( templates ) )
     
     
-    if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
-    
     //calculate number of variants:
+    
     counters := make( []int, len( templates ) + 1 )
     indexes := make( []int, len( templates ) )
-    
-    counter: for {
-        for i := 0; i < len( indexes ); i++ {
 
-            if indexes[i] < len( templates[i] ) {
-                indexes[i] = indexes[i] + 1
-                break;
-            } else {
-                indexes[i] = 0
-                if i == len( templates ) - 1 { break counter }
-            }
-        } 
-        
-        //println( "indexes:", indexes)           
- 
-        
-        not_zero := 0
-        for _,k := range( indexes ) { if k != 0 { not_zero++ }}
-        
-        counters[not_zero]++
-    }
+    if *keep_order {
+        params.Total = 1;
+        for i := 0; i < len( templates ); i++ { params.Total = params.Total  * ( len( templates[i] ) + 1 ) }
+        params.Total = params.Total - 1 
+    } else {
+        if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
     
-    for i, c := range( counters ) {
-        //println( "counters ", i, c )
-        params.Total += c * fact( i )
+        counter: for {
+            for i := 0; i < len( indexes ); i++ {
 
-        if params.Total > 100000000 { panic( "Too many templates. No way you have so much powerful computer...")}
-        
+                if indexes[i] < len( templates[i] ) {
+                    indexes[i] = indexes[i] + 1
+                    break;
+                } else {
+                    indexes[i] = 0
+                    if i == len( templates ) - 1 { break counter }
+                }
+            } 
+
+            //println( "indexes:", indexes)           
+
+
+            not_zero := 0
+            for _,k := range( indexes ) { if k != 0 { not_zero++ }}
+
+            counters[not_zero]++
+        }
+
+        for i, c := range( counters ) {
+            //println( "counters ", i, c )
+            params.Total += c * fact( i )
+
+            if params.Total > 100000000 { panic( "Too many templates. No way you have so much powerful computer...")}
+
+        }
     }
 
     
