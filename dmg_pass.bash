@@ -18,6 +18,8 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
         echo "            The disk is succesfully mounted!!! "
         echo "            Your password is: $line"
         echo ""
+        echo "      Do not forget to donate some ETH to the developer:"
+        echo "  Ethereum Address: 0x281694Fabfdd9735e01bB59942B18c469b6e3df6"             
         echo "================================================================"
         exit    
     fi
