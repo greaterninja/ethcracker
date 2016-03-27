@@ -18,6 +18,7 @@ var templates [][]string
 // note, that variables are pointers
 var pk = flag.String("pk", "", "Private key file")
 var t = flag.String("t", "", "Pattern file")
+var l = flag.String("l", "", "File with list of variants. If specified, -t is ignored" )
 var min_len = flag.Int("min_len", 8, "Minimum password length")
 var max_len = flag.Int("max_len", 20, "Maximum password length")
 var n_threads = flag.Int("threads", 4, "Number of threads")
@@ -58,7 +59,7 @@ func main() {
     
     if *v > 0 {
         println( "------------------------------------------------")
-        println( "Ethereum Password Cracker v1.9")
+        println( "Ethereum Password Cracker v1.10")
         println( "Author: @AlexNa ")
         println( "------------------------------------------------")
         println( "Private Key File:", *pk )
@@ -81,7 +82,6 @@ func main() {
     params.RE = *re
     
     if *pk == "" { panic( "No key file") }
-    if *t == "" { panic( "No template file") }
     
     if *n_threads < 1 || *n_threads > 32 { panic( "Wrong muber of threads ")}
     
@@ -114,35 +114,53 @@ func main() {
     }
     
     templates = make( [][]string, 0 )
-    f, err := os.Open( *t )
-    if err != nil { panic( err ) }
+    pl := make( []string, 0 )
+    
+    if *l != "" {
+        f, err := os.Open( *l )
+        if err != nil { panic( err ) }
 
-    scanner := bufio.NewScanner(f)
-    for scanner.Scan() {
-        tl := strings.Split( scanner.Text(), " " )
-        if len( tl ) >= 0 { 
-            
-            for i, _ := range( tl ) {
-                tl[i] = strings.Replace( tl[i], "\\s", " ", -1 )
-            }
-            
-            templates = append( templates, tl ) 
+        scanner := bufio.NewScanner(f)
+        for scanner.Scan() {
+            pl = append( pl, scanner.Text() )
         }
+
+        if err := scanner.Err(); err != nil { panic( err ) }
+        f.Close()
+    } else {
+        if *t == "" { panic( "No template file") }
+        
+        f, err := os.Open( *t )
+        if err != nil { panic( err ) }
+
+        scanner := bufio.NewScanner(f)
+        for scanner.Scan() {
+            tl := strings.Split( scanner.Text(), " " )
+            if len( tl ) >= 0 { 
+
+                for i, _ := range( tl ) {
+                    tl[i] = strings.Replace( tl[i], "\\s", " ", -1 )
+                }
+
+                templates = append( templates, tl ) 
+            }
+        }
+
+        if err := scanner.Err(); err != nil { panic( err ) }
+
+        f.Close()
+    
+        if *v > 0 { println( "Template lines:", len( templates ) ) }
     }
-
-    if err := scanner.Err(); err != nil { panic( err ) }
-
-    f.Close()
-    
-    if *v > 0 { println( "Template lines:", len( templates ) ) }
-    
     
     //calculate number of variants:
     
     counters := make( []int, len( templates ) + 1 )
     indexes := make( []int, len( templates ) )
 
-    if *keep_order {
+    if *l != "" {
+        params.Total = len( pl )
+    } else if *keep_order {
         params.Total = 1;
         for i := 0; i < len( templates ); i++ { params.Total = params.Total  * ( len( templates[i] ) + 1 ) }
         params.Total = params.Total - 1 
@@ -184,35 +202,45 @@ func main() {
     if *v > 0 { println( "---------------- STARTING ----------------------") }
 
     //main cycle
-    indexes = make( []int, len( templates ) )
-    main: for {
-        
-        for i := 0; i < len( indexes ); i++ {
-            
-            if indexes[i] < len( templates[i] ) {
-                indexes[i] = indexes[i] + 1
-                break;
+    if *l != "" {
+        for _, np := range( pl ) { 
+            if( *n_threads == 1 ) {
+                crypto.Test_pass( &params, np, 0 )
             } else {
-                indexes[i] = 0
-                if i == len( templates ) - 1 { break main }
-            }
-        } 
-        
-        letters := make( []string, 0 )
-        
-        for i := 0; i < len( indexes ); i++ {
-            if indexes[i] > 0 { letters = append( letters, templates[i][indexes[i] - 1 ] ) }
+                chans[ params.N % *n_threads ] <- np
+            }        
         }
-        
-        letters_str := ""
-        for _, l := range( letters ) { letters_str += "(" + l + ") "}
-        
-        if *v > 1 && params.N >= params.Start_from { println( "Selected letters:", letters_str ) }
-        
-        if *keep_order {
-            test( letters )
-        } else {
-            AllPermutations( letters, 0 )
+    } else {
+        indexes = make( []int, len( templates ) )
+        main: for {
+
+            for i := 0; i < len( indexes ); i++ {
+
+                if indexes[i] < len( templates[i] ) {
+                    indexes[i] = indexes[i] + 1
+                    break;
+                } else {
+                    indexes[i] = 0
+                    if i == len( templates ) - 1 { break main }
+                }
+            } 
+
+            letters := make( []string, 0 )
+
+            for i := 0; i < len( indexes ); i++ {
+                if indexes[i] > 0 { letters = append( letters, templates[i][indexes[i] - 1 ] ) }
+            }
+
+            letters_str := ""
+            for _, l := range( letters ) { letters_str += "(" + l + ") "}
+
+            if *v > 1 && params.N >= params.Start_from { println( "Selected letters:", letters_str ) }
+
+            if *keep_order {
+                test( letters )
+            } else {
+                AllPermutations( letters, 0 )
+            }
         }
     }
     

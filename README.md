@@ -13,6 +13,7 @@ THE GITHUB. THIS WAY YOU CAN BE SURE, THE PROGRAM DOES NOT HAVE ANY MALICIOUS CO
 
     -pk path to the private key file
     -t  path to the template file
+    -l  path to the file with all the possible variants (every line has one variant) If -l is specified, -t is ignored
     -presale  for cracking prelase JSON file
     -threads Number of threads
     -v Verbosity ( 0, 1, 2 )
