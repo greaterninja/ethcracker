@@ -13,7 +13,10 @@ import (
 )
 
 var templates [][]string 
-
+type TEMP_FLAG struct {
+    UseAlways bool
+}
+var templates_flags []TEMP_FLAGS
 
 // note, that variables are pointers
 var pk = flag.String("pk", "", "Private key file")
