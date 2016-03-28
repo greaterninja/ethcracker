@@ -1,3 +1,5 @@
+// Written by @AlexNa
+
 package main
 
 import ( 
@@ -6,6 +8,7 @@ import (
     "bufio"
     "sync"
     "strings"
+    "unicode"
 //    "encoding/json"
 //    "fmt"
     "time"
@@ -13,6 +16,13 @@ import (
 )
 
 var templates [][]string 
+
+type TEMP_FLAGS struct {
+    UseAlways bool
+    Capitalize bool
+}
+
+var templates_flags []TEMP_FLAGS
 
 
 // note, that variables are pointers
@@ -41,6 +51,15 @@ func fact( x int) int {
   return x * fact( x - 1 )
 }
 
+func safe_add( a []string, s string ) []string {
+    for _,n := range( a ) {
+        if n == s { return a }
+    }
+    
+    return append( a, s )
+}
+
+
 func main() {
     var err error
     
@@ -59,7 +78,7 @@ func main() {
     
     if *v > 0 {
         println( "------------------------------------------------")
-        println( "Ethereum Password Cracker v1.10")
+        println( "Ethereum Password Cracker v2.0")
         println( "Author: @AlexNa ")
         println( "------------------------------------------------")
         println( "Private Key File:", *pk )
@@ -114,6 +133,8 @@ func main() {
     }
     
     templates = make( [][]string, 0 )
+    templates_flags = make( []TEMP_FLAGS, 0 )
+
     pl := make( []string, 0 )
     
     if *l != "" {
@@ -135,14 +156,52 @@ func main() {
 
         scanner := bufio.NewScanner(f)
         for scanner.Scan() {
+            
+            templ := make( []string, 0 )
+            
             tl := strings.Split( scanner.Text(), " " )
-            if len( tl ) >= 0 { 
+            
+            for _, n := range( tl ) {
+                if n == "" { continue }
+                if n == " " { continue }
+                
+                templ = safe_add( templ, n )                
+            }
+            
+            if len( templ ) >= 0 { 
 
-                for i, _ := range( tl ) {
-                    tl[i] = strings.Replace( tl[i], "\\s", " ", -1 )
+                for i, _ := range( templ ) {
+                    templ[i] = strings.Replace( templ[i], "\\s", " ", -1 )
                 }
+                
+                var tf TEMP_FLAGS
+                
+                if strings.HasPrefix( templ[0], "~" ) {
+                    if len( templ ) == 1 { continue } //nothing but flags...
+                    
+                    tf.UseAlways = strings.Index( templ[0], "a" ) > 0
+                    tf.Capitalize = strings.Index( templ[0], "c" ) > 0
+                 
+                    templ = templ[1:] //remove the first 
+                }
+                
+                if tf.Capitalize {
+                    t := make( []string, 0 )
 
-                templates = append( templates, tl ) 
+                    for _, n := range( templ ) {
+                        if len( n ) > 0 {
+                            t = safe_add( t, string( unicode.ToUpper( []rune(n)[0] ) ) + n[1:] )
+                            t = safe_add( t, string( unicode.ToLower( []rune(n)[0] ) ) + n[1:] )
+                        }
+                        templ = t
+                    }                    
+                }
+                
+
+                templates = append( templates, templ ) 
+                templates_flags = append( templates_flags, tf ) 
+                
+                //println( "templates_flags:", len( templates_flags ) - 1, tf.UseAlways ) 
             }
         }
 
@@ -153,39 +212,54 @@ func main() {
         if *v > 0 { println( "Template lines:", len( templates ) ) }
     }
     
+    
     //calculate number of variants:
     
     counters := make( []int, len( templates ) + 1 )
     indexes := make( []int, len( templates ) )
+    for i := 0; i < len( indexes ); i++ {
+        if  templates_flags[i].UseAlways { indexes[i] = 1 }
+    }
 
     if *l != "" {
         params.Total = len( pl )
     } else if *keep_order {
+        
+        a_exists := false
+        
         params.Total = 1;
-        for i := 0; i < len( templates ); i++ { params.Total = params.Total  * ( len( templates[i] ) + 1 ) }
-        params.Total = params.Total - 1 
+        for i := 0; i < len( templates ); i++ { 
+            if templates_flags[i].UseAlways {
+                params.Total = params.Total  * len( templates[i] )  
+                a_exists = true
+            } else {
+                params.Total = params.Total  * ( len( templates[i] ) + 1 ) 
+            }
+        }
+        if !a_exists { params.Total = params.Total - 1 }
     } else {
         if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
     
         counter: for {
+            not_zero := 0
+            for _,k := range( indexes ) { if k != 0 { not_zero++ }}
+
+            counters[not_zero]++
+
             for i := 0; i < len( indexes ); i++ {
 
                 if indexes[i] < len( templates[i] ) {
                     indexes[i] = indexes[i] + 1
                     break;
                 } else {
-                    indexes[i] = 0
+                    if templates_flags[i].UseAlways {
+                        indexes[i] = 1
+                    } else {
+                        indexes[i] = 0
+                    }                        
                     if i == len( templates ) - 1 { break counter }
                 }
             } 
-
-            //println( "indexes:", indexes)           
-
-
-            not_zero := 0
-            for _,k := range( indexes ) { if k != 0 { not_zero++ }}
-
-            counters[not_zero]++
         }
 
         for i, c := range( counters ) {
@@ -196,7 +270,6 @@ func main() {
 
         }
     }
-
     
     if *v > 0 { println( "Total possible variants:", params.Total) }
     if *v > 0 { println( "---------------- STARTING ----------------------") }
@@ -212,19 +285,12 @@ func main() {
         }
     } else {
         indexes = make( []int, len( templates ) )
+        for i := 0; i < len( indexes ); i++ {
+            if  templates_flags[i].UseAlways { indexes[i] = 1 }
+        }
+        
         main: for {
-
-            for i := 0; i < len( indexes ); i++ {
-
-                if indexes[i] < len( templates[i] ) {
-                    indexes[i] = indexes[i] + 1
-                    break;
-                } else {
-                    indexes[i] = 0
-                    if i == len( templates ) - 1 { break main }
-                }
-            } 
-
+            
             letters := make( []string, 0 )
 
             for i := 0; i < len( indexes ); i++ {
@@ -241,6 +307,22 @@ func main() {
             } else {
                 AllPermutations( letters, 0 )
             }
+
+            for i := 0; i < len( indexes ); i++ {
+
+                if indexes[i] < len( templates[i] ) {
+                    indexes[i] = indexes[i] + 1
+                    break;
+                } else {
+                    if templates_flags[i].UseAlways {
+                        indexes[i] = 1
+                    } else {
+                        indexes[i] = 0
+                    }                        
+                    if i == len( templates ) - 1 { break main }
+                }
+            } 
+        
         }
     }
     
@@ -251,7 +333,6 @@ func main() {
         }
         wg.Wait()        
     }
-
            
     if *v > 0 { println( ":-( Sorry... password not found") }
 } 

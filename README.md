@@ -45,6 +45,29 @@ will generate all those combinations
 
 Note: you can use \s to specify white space. ( "a\sb" means "a b" )
 
+
+# Template line flags 
+
+You can also specify some keys for every line. 
+
+    ~a always use some value from this string
+    ~c Try both: capitalized and not-capitalazed versions of all words. 
+    
+For example the template file
+
+    a 
+    ~ac test
+
+will generate all those combinations
+
+    test
+    Test
+    atest
+    aTest
+    testa
+    Testa
+
+
 # Installing
 
 Install Go Language
