@@ -36,6 +36,7 @@ var chans []chan string
 var wg sync.WaitGroup
 var f_dump *os.File 
 
+
 func fact( x int) int {
   if x == 0 {
     return 1
@@ -117,6 +118,8 @@ func main() {
     }
     
     templates = make( [][]string, 0 )
+    templates_flags = make( TEMP_FLAGS, 0 )
+    
     f, err := os.Open( *t )
     if err != nil { panic( err ) }
 
@@ -129,7 +132,16 @@ func main() {
                 tl[i] = strings.Replace( tl[i], "\\s", " ", -1 )
             }
             
+            var tf TEMP_FLAGS
+            
+            if strings.HasPrefix( tl[0], "~" ) {
+                if len( tl ) == 1 continue //nothing but flag...
+                
+                tf.UseAlways = strings.Index( tl[0], "a" ) >= 0
+            }            
+            
             templates = append( templates, tl ) 
+            templates_flags = append( templates_flags, tf ) 
         }
     }
 
