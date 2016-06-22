@@ -7,6 +7,10 @@ routinly go through all the possible combinations and find the working password.
 PLEASE DO NOT TRUST ANYONE TO COMPILE THE PROGRAM FOR YOU. ALWAYS USE THE SOURCE CODE DOWNLOADED FROM 
 THE GITHUB. THIS WAY YOU CAN BE SURE, THE PROGRAM DOES NOT HAVE ANY MALICIOUS CODE !!!
 
+# Slack Channel
+
+https://lexansoft.slack.com/archives/ethcracker
+
 # Usage 
 
     ethcracker -pk ~/test/pk.txt -t ~/test/templates.txt
