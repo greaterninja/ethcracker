@@ -103,7 +103,7 @@ Then install git, golang and mingw
     C:\Windows\system32> choco install golang
     C:\Windows\system32> choco install mingw
     
-After that make all teh steps from Installing section.    
+After that make all the steps from the Installing section.    
     
 # Cracking your Mac DMG file password
 You you stored your keys in the encrypted mac DMG image and forgot the password, do this:
