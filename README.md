@@ -99,9 +99,9 @@ On windwos you need to install the Chocolatey:  https://chocolatey.org
 
 Then install git, golang and mingw 
 
-    C:\Windows\system32> choco install git
-    C:\Windows\system32> choco install golang
-    C:\Windows\system32> choco install mingw
+    choco install git
+    choco install golang
+    choco install mingw
     
 After that make all the steps from the Installing section.    
     
