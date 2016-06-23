@@ -25,6 +25,8 @@ https://gitter.im/lexansoft/ethcracker
     -keep_order Keep the order of the lines ( no permutations )
     -re Report every N-th combination
     -dump path Just dump all the variants into text file
+    -min_len Minimum password length
+    -max_len Maximum password length
     
 
 # Template file format
