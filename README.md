@@ -93,6 +93,18 @@ Install Go Language
     
     go run src/ethcracker.go -pk PATH_TO_FILE -t PATH_TO_TAMPLATE_FILE -threads 4 
     
+# Installing on Windows 
+
+On windwos you need to install the Chocolatey:  https://chocolatey.org 
+
+Then install git, golang and mingw 
+
+    C:\Windows\system32> choco install git
+    C:\Windows\system32> choco install golang
+    C:\Windows\system32> choco install mingw
+    
+After that make all teh steps from Installing section.    
+    
 # Cracking your Mac DMG file password
 You you stored your keys in the encrypted mac DMG image and forgot the password, do this:
 
