@@ -118,6 +118,9 @@ You you stored your keys in the encrypted mac DMG image and forgot the password,
 
         ./dmg_pass.bash v.txt your.dmg
         
+        or
+        
+        ./dmg_pass.bash v.txt your.dmg N -- to skipp first N lines
 
 # Donation
 

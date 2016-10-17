@@ -238,7 +238,7 @@ func main() {
         }
         if !a_exists { params.Total = params.Total - 1 }
     } else {
-        if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
+//        if len( templates ) > 20 { panic( "Too many templates. No way you have so much powerful computer...")}
     
         counter: for {
             not_zero := 0

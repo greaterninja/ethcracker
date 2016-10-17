@@ -6,8 +6,13 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     
     ((i++))
 
+    if [ $i -lt $3 ]; then
+        echo "$i: $line skipped"
+        continue
+    fi
+
     echo "$i: $line"
-    
+        
     res="$(printf $line | hdiutil attach -quiet -stdinpass $2 )" 
 
 #    echo "RESULT: $?"
